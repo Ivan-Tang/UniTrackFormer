@@ -8,18 +8,18 @@ import math
 
 
 class TrackMLDataset(Dataset):
-    def __init__(self, data_dir: str, detectors_df: pd.DataFrame, Q=64):
+    def __init__(self, data_dir: str, event_id: str, detectors_df: pd.DataFrame, event_ids: list, Q=64):
         self.data_dir = data_dir
         self.Q = Q
-        self.event_list = self.get_event_list(data_dir)
         self.detectors_df = detectors_df
+        self.event_ids = event_ids
         self.feature_dim = 27
 
     def __len__(self):
-        return len(self.event_list)
+        return len(self.event_ids)
 
     def __getitem__(self, idx):
-        event_id = self.event_list[idx]
+        event_id = self.event_ids[idx]
 
         hits, cells, particles, truth = load_event(os.path.join(self.data_dir, f"{event_id}"))
 
@@ -34,17 +34,6 @@ class TrackMLDataset(Dataset):
             'track_labels': torch.tensor(track_labels, dtype=torch.float32),
             'track_params': torch.tensor(track_params, dtype=torch.float32)
         }
-    
-    def get_event_list(self, data_dir):
-        """
-        获取data_dir下所有事件列表
-        """
-        event_list = []
-        for file in os.listdir(data_dir):
-            if file.endswith('-hits.csv'):
-                event_id = file.split('-')[0]
-                event_list.append(event_id)
-        return event_list
     
     @staticmethod
     def extract_features(hits_df: pd.DataFrame, cells_df: pd.DataFrame, detectors_df: pd.DataFrame):
