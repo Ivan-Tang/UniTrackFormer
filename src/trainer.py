@@ -18,18 +18,29 @@ def train_one_epoch(model, loss_fn, dataloader, optimizer, device='cpu'):
             return 'cpu'
         
     device = get_device()
+    print(f"Training on {device}...")
     model = model.to(device)
 
     for i, batch in enumerate(dataloader):
         # 获取输入 + 标签
-        X = batch['input'][0].to(device)                # [N_hits, D]
-        mask_label = batch['mask'][0].to(device)        # [Q, N_hits]
-        track_label = batch['track_cls'][0].to(device)  # [Q]
-        param_label = batch['track_param'][0].to(device)  # [Q, 3]
+        X = batch['X'].squeeze(0).to(device)                # [N_hits, D]
+        mask_label = batch['mask_labels'].squeeze(0).to(device)        # [Q, N_hits]
+        track_label = batch['track_labels'].squeeze(0).to(device)  # [Q]
+        param_label = batch['track_params'].squeeze(0).to(device)  # [Q, 3]
 
         # Forward pass
         out = model(X)
-        # out = {'track_logits': [Q], 'hit_assignment': [Q, N_hits], 'track_properties': [Q, 3]}
+        # out = {'track_logits': [Q], 'hit_assignment': [Q, N_hits], 'track_properties': [Q, 6]}
+
+        # 只保留前 K 个 hits
+        topk_idx = out['topk_idx']
+        mask_label = mask_label[:, topk_idx]
+
+
+        print("track_logits:", out['track_logits'].shape)     # 应该 [Q]
+        print("track_labels:", track_label.shape)            # 应该 [Q]
+        print("hit_assignment:", out['hit_assignment'].shape) # [Q, K]
+        print("mask_labels:", mask_label.shape)              # [Q, K]
 
         # Compute loss
         loss_dict = loss_fn(
@@ -59,14 +70,17 @@ def train_one_epoch(model, loss_fn, dataloader, optimizer, device='cpu'):
     print(f"Epoch Done - Avg Loss: {avg_loss:.4f}")
 
 
-model = UniTrackFormer()
+
+
 loss_fn = LossModule()
 
 data_dir = 'data/train_sample/train_100_events'
 detectors = pd.read_csv('data/detectors.csv')
 dataset = TrackMLDataset(data_dir=data_dir, detectors_df=detectors)
 
-loader = DataLoader(dataset, batch_size=16, shuffle=True)
+model = UniTrackFormer(input_dim = dataset.feature_dim)
+
+loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 

@@ -13,6 +13,7 @@ class TrackMLDataset(Dataset):
         self.Q = Q
         self.event_list = self.get_event_list(data_dir)
         self.detectors_df = detectors_df
+        self.feature_dim = 27
 
     def __len__(self):
         return len(self.event_list)
@@ -20,14 +21,15 @@ class TrackMLDataset(Dataset):
     def __getitem__(self, idx):
         event_id = self.event_list[idx]
 
-        hits, cells, particles, truth = load_event(self.data_dir + str(event_id))
+        hits, cells, particles, truth = load_event(os.path.join(self.data_dir, f"{event_id}"))
 
         X = self.extract_features(hits, cells, self.detectors_df)  # [N_hits, D]
+        self.feature_dim = X.shape[1]
 
         mask_labels, track_labels, track_params = self.build_labels(particles, truth, Q=self.Q)
 
         return {
-            'X': torch.tensor(X, dtype=torch.float32),
+            'X': torch.tensor(X.values, dtype=torch.float32),
             'mask_labels': torch.tensor(mask_labels, dtype=torch.float32),
             'track_labels': torch.tensor(track_labels, dtype=torch.float32),
             'track_params': torch.tensor(track_params, dtype=torch.float32)
@@ -44,13 +46,13 @@ class TrackMLDataset(Dataset):
                 event_list.append(event_id)
         return event_list
     
+    @staticmethod
     def extract_features(hits_df: pd.DataFrame, cells_df: pd.DataFrame, detectors_df: pd.DataFrame):
         """
         计算所有特征并合并
         输出 shape: [N_hits, 16]
         """
 
-        print('Calculating Basic Features...')
         x = hits_df['x'].values
         y = hits_df['y'].values
         z = hits_df['z'].values
@@ -65,8 +67,6 @@ class TrackMLDataset(Dataset):
 
 
         # 计算每个 hit 对应的 cell 特征
-
-        print("Calculating Cell Features...")
         grouped = cells_df.groupby('hit_id')
 
         charge_sum = grouped['value'].sum()
@@ -86,8 +86,6 @@ class TrackMLDataset(Dataset):
         })
 
         #提取所需的detectors特征
-
-        print('Calculating Detectors Features...')
         detectors_features = detectors_df[[
         'volume_id', 'layer_id', 'module_id',
         'cx', 'cy', 'cz', 'module_t', 'module_minhu', 'module_maxhu', 'module_hv',
@@ -114,6 +112,7 @@ class TrackMLDataset(Dataset):
 
         return features
     
+    @staticmethod
     def build_labels(particles_df: pd.DataFrame, truth_df: pd.DataFrame, Q: int = 64):
         """
         输入：
@@ -146,7 +145,7 @@ class TrackMLDataset(Dataset):
                 if hits not in selected_hits:
                     pid_to_qid[pid] = qid
                     selected_hits.update(hits)
-                    Q += 1
+                    qid += 1
                 if qid >= Q:
                     break
 
@@ -170,8 +169,6 @@ class TrackMLDataset(Dataset):
                 continue
             mask_labels[qid, hid_idx] = 1.0
             
-            
-
         for pid, qid in pid_to_qid.items():
             track_labels[qid] = 1.0  # 是有效轨迹
             row = particles_df[particles_df['particle_id'] == pid].iloc[0]
