@@ -14,6 +14,8 @@ trackML/
 │   │   ├── models.py          # UniTrackFormer 模型定义
 │   │   ├── losses.py          # 多任务损失函数实现
 │   │   ├── trainer.py         # 模型训练逻辑
+│   │   ├── kfold_trainer.py   # kfold模型训练逻辑
+│   │   ├── metric.py          # 评价efficiency/fake_rate函数
 │   │   └── main.ipynb         # 数据探索与训练 Notebook
 │   └── test/                  # 测试脚本（可选）
 ├── data/                      # 数据目录（需手动下载）
@@ -61,6 +63,7 @@ data/
 │   ├── event000001000-cells.csv
 │   ├── event000001000-particles.csv
 │   └── event000001000-truth.csv
+|   ...
 └── test/
     ├── event000001000-hits.csv
     ├── event000001000-cells.csv
@@ -72,12 +75,12 @@ data/
 建议使用 Python ≥ 3.8，核心依赖如下：
 
 ```bash
-pip install numpy pandas torch
+pip install numpy pandas torch scikit-learn
 ```
 
 额外依赖（推荐）：
 
-- [`trackml-library`](https://github.com/LAL/trackml-library)：用于解析和可视化 TrackML 数据
+- [`trackml-library`](https://github.com/LAL/trackml-library)：用于解析和可视化 TrackML 数据（根据仓库中的指引在环境中安装trackML）
 
 ---
 
@@ -92,10 +95,12 @@ pip install numpy pandas torch
 ### 脚本方式训练
 
 ```bash
-python code/src/trainer.py
+python src/trainer.py
+python src/kfold_trainer.py
 ```
 
-你可以在 `trainer.py` 中修改超参数（如 batch size、学习率等），支持多事件迭代训练与保存模型。
+你可以在 `model.py` `trainer.py` `kfold_trainer.py` 中修改超参数（如 batch size、学习率等），支持多事件迭代训练与保存模型。
+视训练平台的显存大小，可以调整model.py中的self.max_hits，这将决定每个batch送入模型的hits数量。
 
 ---
 
