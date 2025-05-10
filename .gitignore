@@ -174,12 +174,12 @@ cython_debug/
 .pypirc
 
 #ppt
-.ppt
-.pptx
+*.ppt
+*.pptx
 
 #data
-.csv
-.zip
+*.csv
+*.zip
 
 #Apple
 .DS_Store
