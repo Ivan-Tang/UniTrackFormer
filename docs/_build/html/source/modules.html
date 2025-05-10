@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+
+<html lang="zh" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>src &#8212; UniTrackFormer  文档</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <script src="../_static/documentation_options.js?v=2ccfc426"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="src">
+<h1>src<a class="headerlink" href="#src" title="Link to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="src.html">src package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="src.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src.dataset">src.dataset module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src.html#src.dataset.TrackMLDataset"><code class="docutils literal notranslate"><span class="pre">TrackMLDataset</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src.html#src.dataset.TrackMLDataset.build_labels"><code class="docutils literal notranslate"><span class="pre">TrackMLDataset.build_labels()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.html#src.dataset.TrackMLDataset.extract_features"><code class="docutils literal notranslate"><span class="pre">TrackMLDataset.extract_features()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src.kfold_trainer">src.kfold_trainer module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src.html#src.kfold_trainer.train_kfold"><code class="docutils literal notranslate"><span class="pre">train_kfold()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src.losses">src.losses module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src.html#src.losses.LossModule"><code class="docutils literal notranslate"><span class="pre">LossModule</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src.html#src.losses.LossModule.dice_loss"><code class="docutils literal notranslate"><span class="pre">LossModule.dice_loss()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.html#src.losses.LossModule.forward"><code class="docutils literal notranslate"><span class="pre">LossModule.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src.metric">src.metric module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src.html#src.metric.compute_efficiency"><code class="docutils literal notranslate"><span class="pre">compute_efficiency()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.html#src.metric.compute_fake_rate"><code class="docutils literal notranslate"><span class="pre">compute_fake_rate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.html#src.metric.evaluate_metrics"><code class="docutils literal notranslate"><span class="pre">evaluate_metrics()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src.models">src.models module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src.html#src.models.UniTrackFormer"><code class="docutils literal notranslate"><span class="pre">UniTrackFormer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src.html#src.models.UniTrackFormer.forward"><code class="docutils literal notranslate"><span class="pre">UniTrackFormer.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src.one_epoch_trainer">src.one_epoch_trainer module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src.html#src.one_epoch_trainer.train_one_epoch"><code class="docutils literal notranslate"><span class="pre">train_one_epoch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.html#src.one_epoch_trainer.validate_one_epoch"><code class="docutils literal notranslate"><span class="pre">validate_one_epoch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src.test">src.test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src.trainer">src.trainer module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src.html#src.trainer.evaluate_on_test"><code class="docutils literal notranslate"><span class="pre">evaluate_on_test()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.html#src.trainer.train"><code class="docutils literal notranslate"><span class="pre">train()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.html#src.trainer.train_one_epoch"><code class="docutils literal notranslate"><span class="pre">train_one_epoch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.html#src.trainer.validate_one_epoch"><code class="docutils literal notranslate"><span class="pre">validate_one_epoch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">UniTrackFormer</a></h1>
+
+
+
+
+
+
+
+
+<h3>导航</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="提交" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Yiwen Tang.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/source/modules.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
