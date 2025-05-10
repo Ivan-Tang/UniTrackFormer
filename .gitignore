@@ -172,3 +172,14 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+#ppt
+.ppt
+.pptx
+
+#data
+.csv
+.zip
+
+#Apple
+.DS_Store
