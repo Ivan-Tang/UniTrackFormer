@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def compute_efficiency(true_labels, pred_labels):
     """
     计算 efficiency：被正确识别的真实轨迹 hit 数 / 所有真实 hit 数
@@ -19,6 +20,7 @@ def compute_efficiency(true_labels, pred_labels):
             matched_pids.add(pid)
 
     return len(matched_pids) / len(true_pids) if true_pids else 0.0
+
 
 def compute_fake_rate(true_labels, pred_labels):
     """
@@ -41,6 +43,7 @@ def compute_fake_rate(true_labels, pred_labels):
 
     return fake_hits / total_pred_hits if total_pred_hits > 0 else 0.0
 
+
 def evaluate_metrics(true_labels, pred_labels):
     """
     综合评估函数，返回多个指标
@@ -48,6 +51,6 @@ def evaluate_metrics(true_labels, pred_labels):
     efficiency = compute_efficiency(true_labels, pred_labels)
     fake_rate = compute_fake_rate(true_labels, pred_labels)
     return {
-        'efficiency': efficiency,
-        'fake_rate': fake_rate,
+        "efficiency": efficiency,
+        "fake_rate": fake_rate,
     }

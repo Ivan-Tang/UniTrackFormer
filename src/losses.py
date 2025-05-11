@@ -1,11 +1,12 @@
 import torch
 import torch.nn.functional as F
 
+
 class LossModule(torch.nn.Module):
     def __init__(self, alpha=1.0, beta=5.0, gamma=1.0, use_bce_mask=True):
         super().__init__()
         self.alpha = alpha  # 分类损失权重
-        self.beta = beta    # 掩码损失权重
+        self.beta = beta  # 掩码损失权重
         self.gamma = gamma  # 参数损失权重
         self.use_bce_mask = use_bce_mask
 
@@ -16,8 +17,15 @@ class LossModule(torch.nn.Module):
         dice = 1 - num / denom
         return dice.mean()
 
-    def forward(self, track_logits, hit_masks, track_props,
-                target_cls, target_masks, target_props):
+    def forward(
+        self,
+        track_logits,
+        hit_masks,
+        track_props,
+        target_cls,
+        target_masks,
+        target_props,
+    ):
         # 分类损失
         cls_loss = F.binary_cross_entropy_with_logits(track_logits, target_cls)
 
@@ -34,11 +42,13 @@ class LossModule(torch.nn.Module):
         prop_loss = F.mse_loss(track_props, target_props)
 
         # 加权总损失
-        total_loss = self.alpha * cls_loss + self.beta * mask_loss + self.gamma * prop_loss
+        total_loss = (
+            self.alpha * cls_loss + self.beta * mask_loss + self.gamma * prop_loss
+        )
 
         return {
-            'total': total_loss,
-            'cls': cls_loss,
-            'mask': mask_loss,
-            'param': prop_loss
+            "total": total_loss,
+            "cls": cls_loss,
+            "mask": mask_loss,
+            "param": prop_loss,
         }
