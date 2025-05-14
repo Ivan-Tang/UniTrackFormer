@@ -11,7 +11,6 @@ class LossModule(torch.nn.Module):
         self.use_bce_mask = use_bce_mask
 
     def dice_loss(self, pred, target, eps=1e-6):
-        # pred, target: [Q, N_hits]
         num = 2 * (pred * target).sum(dim=1)
         denom = (pred + target).sum(dim=1) + eps
         dice = 1 - num / denom
@@ -26,11 +25,9 @@ class LossModule(torch.nn.Module):
         target_masks,
         target_props,
     ):
-        # 分类损失
         cls_loss = F.binary_cross_entropy_with_logits(track_logits, target_cls)
 
-        # 掩码损失
-        pred_probs = torch.sigmoid(hit_masks)  # 将 mask logits 映射到 [0,1]
+        pred_probs = torch.sigmoid(hit_masks)
         dice = self.dice_loss(pred_probs, target_masks)
         if self.use_bce_mask:
             bce = F.binary_cross_entropy(pred_probs, target_masks)
@@ -38,10 +35,8 @@ class LossModule(torch.nn.Module):
         else:
             mask_loss = dice
 
-        # 参数损失
         prop_loss = F.mse_loss(track_props, target_props)
 
-        # 加权总损失
         total_loss = (
             self.alpha * cls_loss + self.beta * mask_loss + self.gamma * prop_loss
         )

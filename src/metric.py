@@ -5,7 +5,7 @@ def compute_efficiency(true_labels, pred_labels):
     """
     计算 efficiency：被正确识别的真实轨迹 hit 数 / 所有真实 hit 数
     """
-    true_pids = set(true_labels) - {0}  # 0 表示噪声
+    true_pids = set(true_labels) - {0} 
     matched_pids = set()
 
     for pid in true_pids:

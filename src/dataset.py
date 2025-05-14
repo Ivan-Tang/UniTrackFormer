@@ -89,8 +89,6 @@ class TrackMLDataset(Dataset):
                 "module_id",
             ],
         )
-
-        # 计算每个 hit 对应的 cell 特征
         grouped = cells_df.groupby("hit_id")
 
         charge_sum = grouped["value"].sum()
@@ -115,7 +113,6 @@ class TrackMLDataset(Dataset):
             }
         )
 
-        # 提取所需的detectors特征
         detectors_features = detectors_df[
             [
                 "volume_id",
@@ -133,7 +130,6 @@ class TrackMLDataset(Dataset):
             ]
         ]
 
-        # 合并特征
         features = pd.merge(hits_features, cells_features, on="hit_id", how="left")
         features = pd.merge(
             features,
@@ -142,12 +138,11 @@ class TrackMLDataset(Dataset):
             how="left",
         )
 
-        # 模块中心
         cx = features["cx"].values
         cy = features["cy"].values
         cz = features["cz"].values
 
-        # hit 坐标
+
         x = features["x"].values
         y = features["y"].values
         z = features["z"].values
@@ -182,13 +177,13 @@ class TrackMLDataset(Dataset):
         particles_df = particles_df[particles_df["nhits"] >= 3].copy()
         truth_df = truth_df[truth_df["particle_id"] != 0].copy()
 
-        # 贪心算法选择轨迹
+        # 选择轨迹
         particle_hits = truth_df.groupby("particle_id")["hit_id"].apply(set).to_dict()
         selected_hits = set()
         pid_to_qid = {}
         qid = 0
 
-        # 根据降序排序，优先选择nhits多的
+        # 优先选择nhits多的
         sorted_particles_df = particles_df.sort_values(by="nhits", ascending=False)
 
         for pid in sorted_particles_df["particle_id"]:
@@ -223,7 +218,7 @@ class TrackMLDataset(Dataset):
             mask_labels[qid, hid_idx] = 1.0
 
         for pid, qid in pid_to_qid.items():
-            track_labels[qid] = 1.0  # 是有效轨迹
+            track_labels[qid] = 1.0 
             row = particles_df[particles_df["particle_id"] == pid].iloc[0]
             track_params[qid] = [
                 row["vx"],

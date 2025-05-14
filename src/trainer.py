@@ -44,21 +44,16 @@ def train_one_epoch(model, loss_fn, dataloader, optimizer, device="cpu"):
     model = model.to(device)
 
     for i, batch in tqdm(enumerate(dataloader)):
-        # 获取输入 + 标签
-        X = batch["X"].squeeze(0).to(device)  # [N_hits, D]
-        mask_label = batch["mask_labels"].squeeze(0).to(device)  # [Q, N_hits]
-        track_label = batch["track_labels"].squeeze(0).to(device)  # [Q]
-        param_label = batch["track_params"].squeeze(0).to(device)  # [Q, 3]
+        X = batch["X"].squeeze(0).to(device) 
+        mask_label = batch["mask_labels"].squeeze(0).to(device)  
+        track_label = batch["track_labels"].squeeze(0).to(device)  
+        param_label = batch["track_params"].squeeze(0).to(device)  
 
-        # Forward pass
         out = model(X)
-        # out = {'track_logits': [Q], 'hit_assignment': [Q, N_hits], 'track_properties': [Q, 6]}
 
-        # 只保留前 K 个 hits
         topk_idx = out["topk_idx"]
         mask_label = mask_label[:, topk_idx]
 
-        # Compute loss
         loss_dict = loss_fn(
             track_logits=out["track_logits"],
             hit_masks=out["hit_assignment"],
@@ -68,7 +63,6 @@ def train_one_epoch(model, loss_fn, dataloader, optimizer, device="cpu"):
             target_props=param_label,
         )
 
-        # Backward pass
         optimizer.zero_grad()
         loss_dict["total"].backward()
         optimizer.step()

@@ -39,11 +39,6 @@ def train_one_epoch(model, loss_fn, dataloader, optimizer, device="cpu"):
         topk_idx = out["topk_idx"]
         mask_label = mask_label[:, topk_idx]
 
-        print("track_logits:", out["track_logits"].shape)  # 应该 [Q]
-        print("track_labels:", track_label.shape)  # 应该 [Q]
-        print("hit_assignment:", out["hit_assignment"].shape)  # [Q, K]
-        print("mask_labels:", mask_label.shape)  # [Q, K]
-
         # Compute loss
         loss_dict = loss_fn(
             track_logits=out["track_logits"],
@@ -81,7 +76,6 @@ def train_one_epoch(model, loss_fn, dataloader, optimizer, device="cpu"):
 
     avg_loss = total_loss / len(dataloader)
     print(f"Epoch Done - Avg Loss: {avg_loss:.4f}")
-
 
 def validate_one_epoch(model, loss_fn, dataloader, device="cpu"):
     model.eval()
@@ -130,7 +124,7 @@ if __name__ == "__main__":
 
     loss_fn = LossModule()
 
-    data_dir = "data/train_sample/train_100_events"
+    data_dir = "data/train_10_events"
     detectors = pd.read_csv("data/detectors.csv")
 
     all_event_ids = sorted(
@@ -154,7 +148,7 @@ if __name__ == "__main__":
     )
 
     model = UniTrackFormer(input_dim=train_dataset.feature_dim)
-
+    
     train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False)
 
