@@ -1,5 +1,6 @@
 import os
 
+import matplotlib.pyplot as plt
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader
@@ -15,6 +16,8 @@ def train(
 ):
     print(f"Training on {device}")
     best_val_loss = float("inf")
+    train_losses = []
+    val_losses = []
 
     for epoch in tqdm(range(num_epochs)):
         train_loss = train_one_epoch(
@@ -24,6 +27,8 @@ def train(
         print(
             f"Epoch {epoch+1}/{num_epochs} - Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}"
         )
+        train_losses.append(train_loss)
+        val_losses.append(val_loss)
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
@@ -37,6 +42,18 @@ def train(
                 f"checkpoints/best_model.pth",
             )
 
+    # 绘制loss曲线
+    plt.figure()
+    plt.plot(range(1, num_epochs + 1), train_losses, label="Train Loss")
+    plt.plot(range(1, num_epochs + 1), val_losses, label="Val Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.title("Training and Validation Loss")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig("checkpoints/loss_curve.png")
+    plt.close()
+
 
 def train_one_epoch(model, loss_fn, dataloader, optimizer, device="cpu"):
     model.train()
@@ -44,10 +61,10 @@ def train_one_epoch(model, loss_fn, dataloader, optimizer, device="cpu"):
     model = model.to(device)
 
     for i, batch in tqdm(enumerate(dataloader)):
-        X = batch["X"].squeeze(0).to(device) 
-        mask_label = batch["mask_labels"].squeeze(0).to(device)  
-        track_label = batch["track_labels"].squeeze(0).to(device)  
-        param_label = batch["track_params"].squeeze(0).to(device)  
+        X = batch["X"].squeeze(0).to(device)
+        mask_label = batch["mask_labels"].squeeze(0).to(device)
+        track_label = batch["track_labels"].squeeze(0).to(device)
+        param_label = batch["track_params"].squeeze(0).to(device)
 
         out = model(X)
 
@@ -151,7 +168,7 @@ if __name__ == "__main__":
     device = get_device()
     loss_fn = LossModule()
 
-    data_dir = "data/train_sample/train_10_events"
+    data_dir = "data/train_10_events"
     detectors = pd.read_csv("data/detectors.csv")
 
     all_event_ids = sorted(
@@ -190,7 +207,7 @@ if __name__ == "__main__":
         train_loader,
         val_loader,
         optimizer,
-        num_epochs=10,
+        num_epochs=50,
         device=device,
     )
 

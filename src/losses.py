@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 
 class LossModule(torch.nn.Module):
-    def __init__(self, alpha=1.0, beta=5.0, gamma=1.0, use_bce_mask=True):
+    def __init__(self, alpha=1000, beta=200, gamma=1, use_bce_mask=True):
         super().__init__()
         self.alpha = alpha  # 分类损失权重
         self.beta = beta  # 掩码损失权重
@@ -43,7 +43,7 @@ class LossModule(torch.nn.Module):
 
         return {
             "total": total_loss,
-            "cls": cls_loss,
-            "mask": mask_loss,
-            "param": prop_loss,
+            "cls": self.alpha * cls_loss,
+            "mask": self.beta * mask_loss,
+            "param": self.gamma * prop_loss,
         }
