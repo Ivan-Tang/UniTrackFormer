@@ -3,6 +3,10 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import torch
+from src.models import UniTrackFormer
+from src.dataset import TrackMLDataset
+from trackml.dataset import load_event
 
 
 def load_event_data(event_dir, event_id):
@@ -21,6 +25,7 @@ def visualize_hits_3d(hits, title="3D Hits Distribution"):
     ax.set_zlabel('Z (mm)')
     plt.title(title)
     plt.savefig('results/3d_hits.png')
+    print('3d_hits.png saved to results/')
 
 
 def visualize_hits_rz(hits, title="Hits in rz Plane"):
@@ -31,6 +36,8 @@ def visualize_hits_rz(hits, title="Hits in rz Plane"):
     plt.ylabel('R = sqrt(x² + y²) (mm)')
     plt.title(title)
     plt.savefig('results/hits_rz.png')
+    print('hits_rz.png saved to results/')
+    
 
 
 def visualize_ground_truth(hits, truth, title="Ground Truth Trajectories"):
@@ -46,6 +53,7 @@ def visualize_ground_truth(hits, truth, title="Ground Truth Trajectories"):
     plt.ylabel('R (mm)')
     plt.title(title)
     plt.savefig('results/ground_truth.png')
+    print('ground_truth.png saved to results/')
 
 
 def visualize_predictions(hits, hit_assignment, threshold=0.5, title="Predicted Tracks"):
@@ -66,22 +74,42 @@ def visualize_predictions(hits, hit_assignment, threshold=0.5, title="Predicted 
     plt.title(title)
     plt.legend(markerscale=5, loc='upper right', bbox_to_anchor=(1.2, 1.0))
     plt.savefig('results/predictions.png')
+    print('predictions.png saved to results/')
 
 
 if __name__ == '__main__':
-    # 示例
-    event_dir = 'data/train_1_events/'
+    event_dir = 'data/sample_event/'
     event_id = 'event000001000'
 
+    print('Plotting hits...')
     hits, truth = load_event_data(event_dir, event_id)
     visualize_hits_3d(hits)
     visualize_hits_rz(hits)
 
+    print('Plotting ground truth...')
     if truth is not None:
         visualize_ground_truth(hits, truth)
 
-    # 模拟一个预测输出 (随机掩码演示)
-    N_hits = hits.shape[0]
-    Q = 5
-    fake_assignment = np.random.rand(Q, N_hits)
-    visualize_predictions(hits, fake_assignment, threshold=0.9)
+    print('Making Predictions...')
+    #load model and predict
+    device = 'cuda' if torch.cuda.is_available() else 'mps'
+    detector_df = pd.read_csv('data/detectors.csv')
+    hits, cells, particles, truth = load_event(os.path.join(event_dir, event_id))
+
+    X = TrackMLDataset.extract_features(hits, cells, detector_df)
+    print(X)
+    X_tensor = torch.tensor(X.values, dtype=torch.float32).to(device)
+
+    model = UniTrackFormer(input_dim = X.shape[1])
+    checkpoints = torch.load('checkpoints/best_model.pth', weights_only=True)
+    model.load_state_dict(checkpoints['model_state_dict'])
+    model = model.to(device)
+    model.eval()
+
+    with torch.no_grad():
+        prediction = model(X_tensor)
+        print(visualize_predictions)
+        hit_assignment = torch.sigmoid(prediction['hit_assignment']).cpu().numpy()
+        print(hit_assignment)
+ 
+    visualize_predictions(hits, hit_assignment, threshold=0.5)
