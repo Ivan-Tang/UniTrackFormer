@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import torch
-from src.models import UniTrackFormer
 from src.dataset import TrackMLDataset
+from src.trackformer import create_trackformer_600mev
 from trackml.dataset import load_event
 
 
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     print(X)
     X_tensor = torch.tensor(X.values, dtype=torch.float32).to(device)
 
-    model = UniTrackFormer(input_dim = X.shape[1])
+    model = create_trackformer_600mev(input_dim=X.shape[1])
     checkpoints = torch.load('checkpoints/best_model.pth', weights_only=True)
     model.load_state_dict(checkpoints['model_state_dict'])
     model = model.to(device)

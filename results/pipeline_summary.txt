@@ -1,0 +1,10 @@
+TrackML TrackFormer Complete Pipeline Summary
+==================================================
+
+Analysis Date: 2025-06-01 20:40:06
+Total Files Generated: 2
+
+results/exploration:
+  - event000001000_exploration.png
+  - event000001000_exploration_particle_stats.png
+

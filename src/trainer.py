@@ -5,8 +5,25 @@ import torch
 from torch.utils.data import DataLoader
 
 from src.dataset import TrackMLDataset
-from src.models import UniTrackFormer
+from src.trackformer import TrackFormer
 from src.losses import LossModule
+
+config = {
+    'epochs': 50,
+    'learning_rate': 1e-3,
+}
+
+model_config = {
+    'd_model': 256,
+    'n_heads': 8,
+    'hit_filter_layers': 12,
+    'track_encoder_layers': 12,
+    'track_decoder_layers': 8,
+    'n_queries': 2100,
+    'hit_filter_window': 1024,
+    'track_window': 512,
+    'filter_threshold': 0.1
+}
 
 def train(model, loss_fn, dataloader, optimizer=None, device='cpu'):
     is_train = optimizer is not None
@@ -19,8 +36,11 @@ def train(model, loss_fn, dataloader, optimizer=None, device='cpu'):
         track_label = batch['track_labels'].squeeze(0).to(device)
         param_label = batch['track_params'].squeeze(0).to(device)
 
-        out = model(X)
-        topk_idx = out['topk_idx'].cpu().numpy()
+        r, phi, z = X[..., 0], X[..., 1], X[..., 2]
+        coords = torch.stack([r, phi, z], dim=1)
+
+        out = model(X, coords)
+        topk_idx = out['topk_idx']
         mask_label = mask_label[:, topk_idx]
 
         loss_dict = loss_fn(
@@ -89,13 +109,11 @@ def main():
     val_dataset = TrackMLDataset(data_dir, detectors, val_ids)
     test_dataset = TrackMLDataset(data_dir, detectors, test_ids)
 
-    model = UniTrackFormer(
-        input_dim = train_dataset.feature_dim
-    )
+    model = TrackFormer(input_dim = train_dataset.feature_dim, **model_config)
     model = model.to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr = 1e-3)
+    optimizer = torch.optim.Adam(model.parameters(), lr = config['learning_rate'])
 
-    num_epochs = 100
+    num_epochs = config['epochs']
     train_loader = DataLoader(train_dataset, batch_size = 1, shuffle = True)
     val_loader = DataLoader(val_dataset, batch_size = 1, shuffle = False)
     test_loader = DataLoader(test_dataset, batch_size = 1, shuffle = False)
@@ -125,7 +143,6 @@ def main():
 
     plot_loss(train_losses, val_losses, 'checkpoints/loss.png')
 
-
     #predict on test
     checkpoints = torch.load('checkpoints/best_model.pth', map_location = device, weights_only=True)
     model.load_state_dict(checkpoints['model_state_dict'])
@@ -138,4 +155,4 @@ if __name__ == '__main__':
 
 
 
-    
+
