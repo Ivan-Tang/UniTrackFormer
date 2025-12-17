@@ -23,34 +23,26 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from src.dataset import TrackMLDataset
-from src.trackformer import create_trackformer_600mev
-from src.losses import LossModule
-from src.metric import evaluate_metrics
-from src.visual import (
+from dataset import TrackMLDataset
+from trackformer import create_trackformer_600mev
+from losses import LossModule
+from metric import evaluate_metrics
+from visual import (
     visualize_hits_3d, 
     visualize_hits_rz, 
     visualize_ground_truth,
     load_event_data
 )
-
+from utils import get_device
 
 class TrackMLPredictor:
     def __init__(self, model_path, device='auto'):
         """初始化预测器"""
-        self.device = self._get_device() if device == 'auto' else device
+        self.device = get_device()
         self.model = None
         self.detectors = pd.read_csv('data/detectors.csv')
         self.load_model(model_path)
         
-    def _get_device(self):
-        """自动检测设备"""
-        if torch.cuda.is_available():
-            return "cuda"
-        elif torch.backends.mps.is_available():
-            return "mps"
-        else:
-            return "cpu"
     
     def load_model(self, model_path):
         """加载训练好的模型（只支持新的TrackFormer架构）"""

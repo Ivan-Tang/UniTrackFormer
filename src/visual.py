@@ -4,9 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import torch
-from src.dataset import TrackMLDataset
-from src.trackformer import create_trackformer_600mev
+from dataset import TrackMLDataset
+from trackformer import create_trackformer_600mev
 from trackml.dataset import load_event
+from utils import get_device
 
 
 def load_event_data(event_dir, event_id):
@@ -92,7 +93,7 @@ if __name__ == '__main__':
 
     print('Making Predictions...')
     #load model and predict
-    device = 'cuda' if torch.cuda.is_available() else 'mps'
+    device = get_device()
     detector_df = pd.read_csv('data/detectors.csv')
     hits, cells, particles, truth = load_event(os.path.join(event_dir, event_id))
 

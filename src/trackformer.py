@@ -391,7 +391,7 @@ class TrackReconstructionModel(nn.Module):
             nn.ReLU(),
             nn.Linear(d_model, d_model // 2),
             nn.ReLU(),
-            nn.Linear(d_model // 2, 4)  # px, py, pz, vz
+            nn.Linear(d_model // 2, 6)  # vx, vy, vz, px, py, pz
         )
         
         # Hit projection for mask computation
@@ -477,7 +477,7 @@ class TrackFormer(nn.Module):
         n_queries: int = 2100,
         hit_filter_window: int = 1024,
         track_window: int = 512,
-        filter_threshold: float = 0.1
+        filter_threshold: float = 0.001
     ):
         super().__init__()
         self.filter_threshold = filter_threshold

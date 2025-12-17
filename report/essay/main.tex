@@ -1,0 +1,166 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath, amssymb}
+\usepackage{authblk}
+\usepackage{hyperref}
+\usepackage{bookmark}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+
+\title{Transformer-based Track Reconstruction with Low-$p_T$ Filtering Enhancement}
+\author{Ivan Tang}
+\affil{Department of Physics, Nanjing University \texttt{yiwen.tang@smail.nju.edu.cn}}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Accurate reconstruction of charged particle trajectories is a key component in high-luminosity collider experiments such as the HL-LHC. We present \textbf{UniTrackFormer}, a Transformer-based model that addresses the TrackML challenge: grouping spatial detector hits into individual particle tracks. Our pipeline integrates learnable hit filtering and track reconstruction using object queries and mask attention. We further explore a hit-level filtering enhancement to improve recovery of low-transverse-momentum ($p_T$) tracks, which are typically under-reconstructed due to sparse signatures. Preliminary results demonstrate that our model captures spatial coherence among hits, offering a modular framework for further development.
+\end{abstract}
+
+\section{Introduction}
+
+The reconstruction of charged particle trajectories from detector hits underpins much of the physics analysis at collider experiments. Traditional tracking algorithms have relied heavily on combinatorial pattern recognition or graph-based heuristics, which face significant scalability challenges in the presence of increasing event complexity and pileup, as anticipated at the High-Luminosity Large Hadron Collider (HL-LHC). The TrackML challenge provides a realistic simulated dataset that emulates the conditions of a general-purpose LHC detector, offering a standardized benchmark to develop and evaluate machine learning approaches for scalable and accurate track reconstruction.
+
+In this work, we propose \textbf{UniTrackFormer}, an end-to-end Transformer-based pipeline that jointly performs hit filtering and track reconstruction. The goal is to assign each detector hit to its corresponding particle trajectory and regress the particle's momentum. Our design emphasizes modularity and scalability, and targets improved low-$p_T$ reconstruction by integrating a learnable filtering stage upstream of a Transformer decoder.
+
+\section{Related Work}
+
+Traditional tracking algorithms in high-energy physics typically involve combinatorial pattern recognition or graph-based heuristics. However, the increasing complexity and event pileup at colliders such as the HL-LHC motivate machine learning approaches. The TrackML Challenge~\cite{chep2018} formalized this problem in a public benchmark setting, while recent work like TrackFormer~\cite{trackformer2024} has introduced Transformer-based architectures that integrate hit assignment and parameter regression in a unified framework. Our work builds upon these foundations by implementing a lightweight but modular architecture, with an emphasis on data-driven hit filtering.
+
+\section{Methodology}
+
+\subsection{Dataset and Preprocessing}
+
+We utilize the TrackML dataset, which simulates proton-proton collision events at the LHC. Each event comprises four CSV files:
+\begin{itemize}
+    \item \texttt{hits.csv}: containing $(x, y, z)$ spatial coordinates and module identifiers;
+    \item \texttt{truth.csv}: providing hit-to-particle associations and true track parameters;
+    \item \texttt{particles.csv}: detailing initial vertex positions, momentum vectors $\vec{p}$, and particle charges;
+    \item \texttt{cells.csv}: offering fine-grained detector readout such as strip or pixel charge.
+\end{itemize}
+
+Our data pipeline converts these inputs into PyTorch tensors. Hit features are encoded as 27-dimensional vectors, incorporating spatial coordinates, layer and module encodings, cylindrical coordinate transformations, and optional detector or cell information. Labels include binary masks indicating hit-to-track assignments, track validity flags, and 6-dimensional regression targets corresponding to $(p_x, p_y, p_z, v_x, v_y, v_z)$ parameters derived from the truth data. We partition the dataset into training, validation, and test splits on an event-wise basis (e.g., 80\%/10\%/10\%) to prevent data leakage.
+
+\subsection{Model Architecture}
+
+UniTrackFormer employs a two-stage architecture comprising hit filtering followed by track reconstruction.
+
+\subsubsection{Hit Filtering Module}
+
+The hit filtering module is implemented as a lightweight Transformer encoder with embedding dimension $d=128$ and $L=4$ layers. We adopt windowed self-attention to efficiently capture local spatial correlations. Positional encodings are incorporated using cylindrical coordinates, including cyclic encoding of the azimuthal angle $\phi$. The encoder outputs embeddings that feed into a two-layer feed-forward classifier, which assigns a learned score to each hit. Hits are then filtered by retaining the top-$K$ scored candidates for downstream processing.
+
+\subsubsection{Track Reconstruction Module}
+
+Inspired by MaskFormer and DETR architectures, the track reconstruction module utilizes $N=64$ learnable object queries. These queries attend over the filtered hit embeddings via multi-head attention within a Transformer decoder. Each query predicts:
+\begin{itemize}
+    \item A binary classification score indicating the presence of a valid track;
+    \item A 6-dimensional regression vector encoding track parameters (momentum and vertex);
+    \item A mask over the $M$ filtered hits, computed as a dot product between the query embedding and hit features, representing hit-to-track assignments.
+\end{itemize}
+
+\subsection{Loss Function}
+
+The training objective is a multi-task loss combining classification, mask prediction, and parameter regression:
+\begin{equation*}
+\mathcal{L} = \alpha \cdot \mathcal{L}_{\mathrm{cls}} + \beta \cdot \mathcal{L}_{\mathrm{mask}} + \gamma \cdot \mathcal{L}_{\mathrm{param}}
+\end{equation*}
+where
+\begin{itemize}
+    \item $\mathcal{L}_{\mathrm{cls}}$ is the binary cross-entropy loss on track validity classification;
+    \item $\mathcal{L}_{\mathrm{mask}}$ combines Dice loss and binary cross-entropy to supervise hit assignment masks;
+    \item $\mathcal{L}_{\mathrm{param}}$ is the mean squared error loss on the 6D track parameter regression.
+\end{itemize}
+The hyperparameters $\alpha, \beta, \gamma$ balance the contributions of each term.
+
+\section{Experiments and Results}
+
+\subsection{Training Protocol}
+
+We conduct training over 5 epochs on a subset of TrackML events, employing the Adam optimizer with a learning rate of $10^{-4}$. The model converges quickly under limited epochs, indicating effective representation learning even in low-resource settings.
+
+\subsection{Qualitative Evaluation}
+
+Figures~\ref{fig:rz_visual} and~\ref{fig:pred_vs_gt} illustrate the spatial distribution of hits and their predicted track assignments compared to ground truth labels. Despite limited hyperparameter tuning, the model effectively captures spatial structures and produces coherent clusters of hits corresponding to particle trajectories.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{../../results/hits_rz.png}
+\caption{RZ projection of detector hits colored by predicted track assignments.}
+\label{fig:rz_visual}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{../../results/ground_truth.png}
+\caption{Visualization of predicted track assignments at the hit level. Points with the same color correspond to hits produced by the same reconstructed track.}
+\label{fig:pred_vs_gt}
+\end{figure}
+
+% For clarity, points with the same color in Figure~\ref{fig:pred_vs_gt} represent hits originating from the same reconstructed track.
+
+\subsection{Additional Hit Visualizations}
+
+To better understand the detector hit distributions and spatial patterns, we include several projections:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.45\textwidth]{../../results/xy_hits_intersection.png}
+\includegraphics[width=0.45\textwidth]{../../results/xy_intersection.png}
+\caption{XY projections of hits before and after filtering.}
+\label{fig:xy_views}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.45\textwidth]{../../results/yz_intersection.png}
+\caption{YZ projection showing vertical detector geometry.}
+\label{fig:yz_view}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{../../results/3d_visual_hits.png}
+\caption{3D visualization of hits in cylindrical detector geometry.}
+\label{fig:3d_view}
+\end{figure}
+
+\subsection{Loss Curve}
+
+The training and validation loss curves depicted in Figure~\ref{fig:loss} demonstrate stable convergence behavior throughout the training process.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{../../results/loss_curve.png}
+\caption{Training loss progression over epochs.}
+\label{fig:loss}
+\end{figure}
+
+\section{Discussion}
+
+While our results demonstrate that UniTrackFormer successfully groups hits into physically plausible tracks, there remain several avenues for improvement. One prominent challenge is the reconstruction of low-$p_T$ tracks, which often leave sparse and noisy signatures across the detector. Naively applying a top-$K$ filter based on classification score may disproportionately exclude these trajectories. We propose mitigating this via a separate Transformer-based filtering stage trained with physics-informed objectives to better distinguish signal hits from background.
+
+In addition, further improvements may stem from incorporating temporal or sequential features, for example by leveraging the radial ordering of hits or augmenting positional encodings with additional geometric or temporal information. A comprehensive evaluation employing physics-aware metrics such as tracking efficiency, purity, and fake rate is essential to benchmark performance relative to existing algorithms and to guide future model refinements.
+
+\section{Conclusion}
+
+We introduced UniTrackFormer, a Transformer-based architecture for end-to-end particle track reconstruction under realistic collider conditions. Our modular architecture integrates learnable hit filtering with object query-based track decoding, demonstrating promising qualitative results on the TrackML dataset. Future work will focus on enhancing low-$p_T$ track recovery, scaling to full datasets, and performing rigorous quantitative evaluations using physics-motivated metrics. These efforts aim to advance the applicability of deep learning methods for real-time and high-precision tracking in next-generation collider experiments.
+
+\section*{Acknowledgements}
+
+The author gratefully acknowledges the guidance and support of Prof. Ligang Xia from the School of Physics, Nanjing University.
+
+\bibliographystyle{plain}
+\begin{thebibliography}{9}
+\bibitem{trackformer2024}
+S. Van Stroud et al., \textit{TrackFormer: End-to-End Reconstruction with Transformers}, arXiv:2411.07149 (2024).
+
+\bibitem{chep2018}
+TrackML Challenge Organizers, \textit{The TrackML Particle Tracking Challenge}, EPJ Web Conf. 150, 00037 (2018).
+\end{thebibliography}
+
+\end{document}

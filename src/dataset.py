@@ -205,7 +205,7 @@ class TrackMLDataset(Dataset):
         # 初始化标签矩阵
         mask_labels = np.zeros((Q, N_hits), dtype=np.float32)
         track_labels = np.zeros(Q, dtype=np.float32)
-        track_params = np.zeros((Q, 6), dtype=np.float32)
+        track_params = np.zeros((Q, 6), dtype=np.float32)  # 6个参数：vx, vy, vz, px, py, pz
 
         # 填入标签
         for _, row in truth_df.iterrows():
@@ -220,13 +220,14 @@ class TrackMLDataset(Dataset):
         for pid, qid in pid_to_qid.items():
             track_labels[qid] = 1.0 
             row = particles_df[particles_df["particle_id"] == pid].iloc[0]
+            # 提供完整的6个参数：vx, vy, vz, px, py, pz
             track_params[qid] = [
-                row["vx"],
-                row["vy"],
-                row["vz"],
-                row["px"],
-                row["py"],
-                row["pz"],
+                row["vx"],  # 速度x分量
+                row["vy"],  # 速度y分量
+                row["vz"],  # 速度z分量
+                row["px"],  # 动量x分量
+                row["py"],  # 动量y分量
+                row["pz"],  # 动量z分量
             ]
 
         return mask_labels, track_labels, track_params

@@ -24,9 +24,9 @@ import torch
 from datetime import datetime
 
 # 导入所有必要的模块
-from src.dataset import TrackMLDataset
-from src.trackformer import create_trackformer_600mev
-from src.trainer import main as train_main
+from dataset import TrackMLDataset
+from trackformer import create_trackformer_600mev
+from trainer import main as train_main
 from test_and_predict import TrackMLPredictor, visualize_predictions
 from advanced_visualization import TrackMLVisualizer, quick_visualize_event
 
@@ -93,7 +93,7 @@ def explore_data(event_id='event000001000'):
         visualizer = TrackMLVisualizer('results/exploration')
         
         # 加载事件数据
-        from src.visual import load_event_data
+        from visual import load_event_data
         hits, truth = load_event_data('data/train_sample', event_id)
         
         print(f"   📈 Event Statistics:")
@@ -211,7 +211,7 @@ def advanced_visualization_analysis(event_id, predictions, metrics):
         visualizer = TrackMLVisualizer('results/analysis')
         
         # 加载事件数据
-        from src.visual import load_event_data
+        from visual import load_event_data
         hits, truth = load_event_data('data/train_sample', event_id)
         
         # 创建完整报告

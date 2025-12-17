@@ -15,7 +15,7 @@ import os
 import pandas as pd
 import torch
 
-from src.trainer import main as single_train, train_kfold
+from trainer import main as single_train, train_kfold
 
 
 def get_device():
